@@ -8,20 +8,22 @@ export interface None {
 }
 export type Option<T> = Some<T> | None;
 export interface PlayerData {
+    unlockedBackgrounds: Array<bigint>;
+    equippedBackground: bigint;
     coins: bigint;
-    unlockedThemes: Array<ThemeId>;
+    unlockedCubeStyles: Array<bigint>;
+    equippedCubeStyle: bigint;
     playerName: string;
     lastDailyClaim: bigint;
-    unlockedSkins: Array<SkinId>;
 }
-export type Timestamp = bigint;
-export type ThemeId = bigint;
 export interface ScoreEntry {
     score: bigint;
-    timestamp: Timestamp;
+    timestamp: bigint;
     playerName: string;
 }
-export type SkinId = bigint;
+export interface UserProfile {
+    name: string;
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -29,12 +31,18 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    awardGameCoins(coinsEarned: bigint): Promise<bigint>;
     claimDailyReward(): Promise<bigint>;
+    equipBackground(bgId: bigint): Promise<void>;
+    equipCubeStyle(styleId: bigint): Promise<void>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getPlayerData(): Promise<PlayerData>;
     getTopScores(): Promise<Array<ScoreEntry>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitScore(score: bigint, playerName: string): Promise<void>;
-    unlockSkin(skinId: SkinId): Promise<void>;
-    unlockTheme(themeId: ThemeId): Promise<void>;
+    unlockBackground(bgId: bigint): Promise<void>;
+    unlockCubeStyle(styleId: bigint): Promise<void>;
 }

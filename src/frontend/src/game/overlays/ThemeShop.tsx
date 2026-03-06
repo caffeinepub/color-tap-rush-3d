@@ -1,132 +1,205 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActor } from "../../hooks/useActor";
 import { useInternetIdentity } from "../../hooks/useInternetIdentity";
 import { useGameStore } from "../useGameStore";
 
-interface ShopItem {
+interface CubePack {
   id: number;
   name: string;
   description: string;
   cost: number;
-  icon: string;
-  preview: string;
+  previewColors: string[];
 }
 
-const THEMES: ShopItem[] = [
+interface BackgroundPack {
+  id: number;
+  name: string;
+  description: string;
+  cost: number;
+  previewGradient: string;
+}
+
+const CUBE_PACKS: CubePack[] = [
   {
     id: 0,
-    name: "Neon",
+    name: "Default Neon",
     description: "Classic neon palette",
     cost: 0,
-    icon: "💚",
-    preview: "linear-gradient(135deg, #00FF88, #007AFF)",
+    previewColors: ["#FF2D55", "#007AFF", "#00FF88", "#FFD60A"],
   },
   {
     id: 1,
-    name: "Cyberpunk",
-    description: "Orange & magenta",
-    cost: 100,
-    icon: "🔶",
-    preview: "linear-gradient(135deg, #FF6B00, #FF00FF)",
+    name: "Pastel Pack",
+    description: "Soft dreamy pastels",
+    cost: 80,
+    previewColors: ["#FF8FA3", "#74B9FF", "#A8E6CF", "#FFE08A"],
   },
   {
     id: 2,
-    name: "Galaxy",
-    description: "Deep space purple",
+    name: "Fire Pack",
+    description: "Blazing warm tones",
+    cost: 120,
+    previewColors: ["#FF4500", "#FF6B00", "#FF8C00", "#FFD700"],
+  },
+  {
+    id: 3,
+    name: "Ice Pack",
+    description: "Frosty cool hues",
+    cost: 150,
+    previewColors: ["#E0F7FF", "#00CFFF", "#AAFFEE", "#F0F0FF"],
+  },
+  {
+    id: 4,
+    name: "Candy Pack",
+    description: "Sweet vibrant colors",
     cost: 200,
-    icon: "🌌",
-    preview: "linear-gradient(135deg, #9B30FF, #3060FF)",
+    previewColors: ["#FF69B4", "#00BFFF", "#7FFF00", "#FF7F50"],
+  },
+  {
+    id: 5,
+    name: "Dark Matter",
+    description: "Deep dark hues",
+    cost: 250,
+    previewColors: ["#8B0000", "#00008B", "#006400", "#B8860B"],
   },
 ];
 
-const SKINS: ShopItem[] = [
+const BACKGROUND_PACKS: BackgroundPack[] = [
   {
     id: 0,
-    name: "Standard",
-    description: "Solid neon cube",
+    name: "Deep Space",
+    description: "Dark starfield default",
     cost: 0,
-    icon: "🟦",
-    preview: "linear-gradient(135deg, #007AFF, #0055FF)",
+    previewGradient: "linear-gradient(135deg, #050510, #0A0A2A)",
   },
   {
     id: 1,
-    name: "Crystal",
-    description: "Transparent + wireframe",
-    cost: 150,
-    icon: "💎",
-    preview:
-      "linear-gradient(135deg, rgba(0,255,255,0.3), rgba(255,255,255,0.1))",
+    name: "Neon Grid",
+    description: "Cyan neon cyber grid",
+    cost: 100,
+    previewGradient: "linear-gradient(135deg, #001A1A, #003333)",
   },
   {
     id: 2,
-    name: "Wireframe",
-    description: "Edge lines only",
-    cost: 80,
-    icon: "🔲",
-    preview: "linear-gradient(135deg, #333366, #111133)",
+    name: "Volcano",
+    description: "Fiery lava environment",
+    cost: 175,
+    previewGradient: "linear-gradient(135deg, #1A0500, #3A0A00)",
+  },
+  {
+    id: 3,
+    name: "Ocean Depths",
+    description: "Deep underwater world",
+    cost: 225,
+    previewGradient: "linear-gradient(135deg, #001220, #002240)",
+  },
+  {
+    id: 4,
+    name: "Cyber City",
+    description: "Neon city at night",
+    cost: 300,
+    previewGradient: "linear-gradient(135deg, #0D0010, #200020)",
   },
 ];
+
+type TabType = "cubes" | "backgrounds";
 
 export function ThemeShop() {
   const {
     showShop,
     setShowShop,
     coins,
-    activeTheme,
-    activeSkin,
-    unlockedThemes,
-    unlockedSkins,
-    setActiveTheme,
-    setActiveSkin,
+    activeCubeStyle,
+    activeBackground,
+    unlockedCubeStyles,
+    unlockedBackgrounds,
+    setActiveCubeStyle,
+    setActiveBackground,
     addCoins,
-    unlockTheme,
-    unlockSkin,
+    unlockCubeStyle,
+    unlockBackground,
   } = useGameStore();
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
   const isAuthenticated = !!identity;
 
-  const [activeTab, setActiveTab] = useState<"themes" | "skins">("themes");
-  const [purchasing, setPurchasing] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<TabType>("cubes");
+  const [purchasing, setPurchasing] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const handleUnlockTheme = async (item: ShopItem) => {
-    if (coins < item.cost) {
+  // Sync from backend on open
+  useEffect(() => {
+    if (!showShop || !isAuthenticated || !actor) return;
+    actor
+      .getPlayerData()
+      .then((data) => {
+        // Sync unlocked items from backend
+        for (const styleId of data.unlockedCubeStyles) {
+          unlockCubeStyle(Number(styleId));
+        }
+        for (const bgId of data.unlockedBackgrounds) {
+          unlockBackground(Number(bgId));
+        }
+      })
+      .catch(console.error);
+  }, [showShop, isAuthenticated, actor, unlockCubeStyle, unlockBackground]);
+
+  const handleBuyCube = async (pack: CubePack) => {
+    if (coins < pack.cost) {
       setError("Not enough coins!");
       setTimeout(() => setError(""), 2000);
       return;
     }
-    setPurchasing(item.id);
+    const key = `cube-${pack.id}`;
+    setPurchasing(key);
     try {
+      addCoins(-pack.cost);
+      unlockCubeStyle(pack.id);
       if (isAuthenticated && actor) {
-        await actor.unlockTheme(BigInt(item.id));
+        await actor.unlockCubeStyle(BigInt(pack.id));
       }
-      addCoins(-item.cost);
-      unlockTheme(item.id);
     } catch (_) {
       setError("Purchase failed. Try again.");
+      // Refund on failure
+      addCoins(pack.cost);
     } finally {
       setPurchasing(null);
     }
   };
 
-  const handleUnlockSkin = async (item: ShopItem) => {
-    if (coins < item.cost) {
+  const handleEquipCube = async (pack: CubePack) => {
+    setActiveCubeStyle(pack.id);
+    if (isAuthenticated && actor) {
+      actor.equipCubeStyle(BigInt(pack.id)).catch(console.error);
+    }
+  };
+
+  const handleBuyBackground = async (pack: BackgroundPack) => {
+    if (coins < pack.cost) {
       setError("Not enough coins!");
       setTimeout(() => setError(""), 2000);
       return;
     }
-    setPurchasing(item.id + 100);
+    const key = `bg-${pack.id}`;
+    setPurchasing(key);
     try {
+      addCoins(-pack.cost);
+      unlockBackground(pack.id);
       if (isAuthenticated && actor) {
-        await actor.unlockSkin(BigInt(item.id));
+        await actor.unlockBackground(BigInt(pack.id));
       }
-      addCoins(-item.cost);
-      unlockSkin(item.id);
     } catch (_) {
       setError("Purchase failed. Try again.");
+      addCoins(pack.cost);
     } finally {
       setPurchasing(null);
+    }
+  };
+
+  const handleEquipBackground = async (pack: BackgroundPack) => {
+    setActiveBackground(pack.id);
+    if (isAuthenticated && actor) {
+      actor.equipBackground(BigInt(pack.id)).catch(console.error);
     }
   };
 
@@ -182,7 +255,7 @@ export function ThemeShop() {
                 textShadow: "0 0 10px rgba(191,90,242,0.5)",
               }}
             >
-              🛍️ Theme Shop
+              🛍️ Shop
             </div>
             <div
               style={{
@@ -190,6 +263,7 @@ export function ThemeShop() {
                 fontSize: 13,
                 color: "#FFD60A",
                 marginTop: 2,
+                fontWeight: 600,
               }}
             >
               🪙 {coins} coins
@@ -226,7 +300,7 @@ export function ThemeShop() {
             gap: 8,
           }}
         >
-          {(["themes", "skins"] as const).map((tab) => (
+          {(["cubes", "backgrounds"] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -237,8 +311,7 @@ export function ThemeShop() {
                 fontFamily: "Outfit, sans-serif",
                 fontWeight: 700,
                 fontSize: 14,
-                letterSpacing: "0.05em",
-                textTransform: "capitalize",
+                letterSpacing: "0.04em",
                 color: activeTab === tab ? "#fff" : "rgba(255,255,255,0.4)",
                 background:
                   activeTab === tab
@@ -254,7 +327,7 @@ export function ThemeShop() {
                 transition: "all 0.15s ease",
               }}
             >
-              {tab === "themes" ? "🎨 Themes" : "🧊 Skins"}
+              {tab === "cubes" ? "🎲 Cube Colors" : "🌌 Backgrounds"}
             </button>
           ))}
         </div>
@@ -285,16 +358,18 @@ export function ThemeShop() {
             gap: 10,
           }}
         >
-          {activeTab === "themes" &&
-            THEMES.map((item, index) => {
-              const isUnlocked = unlockedThemes.includes(item.id);
-              const isActive = activeTheme === item.id;
-              const isPurchasing = purchasing === item.id;
+          {/* Cube Colors Tab */}
+          {activeTab === "cubes" &&
+            CUBE_PACKS.map((pack, index) => {
+              const isOwned = unlockedCubeStyles.includes(pack.id);
+              const isActive = activeCubeStyle === pack.id;
+              const isPurchasing = purchasing === `cube-${pack.id}`;
+              const canAfford = coins >= pack.cost;
 
               return (
                 <div
-                  key={item.id}
-                  data-ocid={`shop.theme_item.${index + 1}`}
+                  key={pack.id}
+                  data-ocid={`shop.cube_item.${index + 1}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -309,21 +384,32 @@ export function ThemeShop() {
                     gap: 14,
                   }}
                 >
-                  {/* Preview */}
+                  {/* 2x2 Color Preview Grid */}
                   <div
                     style={{
                       width: 48,
                       height: 48,
                       borderRadius: 12,
-                      background: item.preview,
+                      overflow: "hidden",
                       flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 22,
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gridTemplateRows: "1fr 1fr",
+                      gap: 2,
+                      padding: 4,
+                      background: "rgba(0,0,0,0.3)",
                     }}
                   >
-                    {item.icon}
+                    {pack.previewColors.map((c) => (
+                      <div
+                        key={c}
+                        style={{
+                          background: c,
+                          borderRadius: 3,
+                          boxShadow: `0 0 6px ${c}88`,
+                        }}
+                      />
+                    ))}
                   </div>
 
                   {/* Info */}
@@ -336,7 +422,7 @@ export function ThemeShop() {
                         color: isActive ? "#BF5AF2" : "rgba(255,255,255,0.9)",
                       }}
                     >
-                      {item.name}
+                      {pack.name}
                     </div>
                     <div
                       style={{
@@ -345,7 +431,7 @@ export function ThemeShop() {
                         color: "rgba(255,255,255,0.4)",
                       }}
                     >
-                      {item.description}
+                      {pack.description}
                     </div>
                   </div>
 
@@ -361,14 +447,16 @@ export function ThemeShop() {
                         border: "1px solid rgba(191,90,242,0.3)",
                         borderRadius: 10,
                         padding: "6px 12px",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      Active
+                      ✓ Active
                     </div>
-                  ) : isUnlocked ? (
+                  ) : isOwned ? (
                     <button
                       type="button"
-                      onClick={() => setActiveTheme(item.id)}
+                      data-ocid={`shop.cube_equip.${index + 1}`}
+                      onClick={() => void handleEquipCube(pack)}
                       style={{
                         fontFamily: "Outfit, sans-serif",
                         fontWeight: 700,
@@ -379,55 +467,56 @@ export function ThemeShop() {
                         borderRadius: 10,
                         padding: "6px 12px",
                         cursor: "pointer",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      Use
+                      Equip
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => void handleUnlockTheme(item)}
-                      disabled={isPurchasing || coins < item.cost}
+                      data-ocid={`shop.cube_buy.${index + 1}`}
+                      onClick={() => void handleBuyCube(pack)}
+                      disabled={isPurchasing || !canAfford}
                       style={{
                         fontFamily: "Outfit, sans-serif",
                         fontWeight: 700,
                         fontSize: 12,
-                        color:
-                          coins >= item.cost
-                            ? "#0A0A1A"
-                            : "rgba(255,255,255,0.4)",
-                        background:
-                          coins >= item.cost
-                            ? "linear-gradient(135deg, #FFD60A, #FF9500)"
-                            : "rgba(255,255,255,0.05)",
+                        color: canAfford ? "#0A0A1A" : "rgba(255,255,255,0.4)",
+                        background: canAfford
+                          ? "linear-gradient(135deg, #FFD60A, #FF9500)"
+                          : "rgba(255,255,255,0.05)",
                         border: "none",
                         borderRadius: 10,
                         padding: "6px 12px",
-                        cursor: coins >= item.cost ? "pointer" : "not-allowed",
+                        cursor: canAfford ? "pointer" : "not-allowed",
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
                         flexShrink: 0,
                         opacity: isPurchasing ? 0.7 : 1,
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {coins < item.cost ? "🔒" : "🪙"} {item.cost}
+                      {canAfford ? "🪙" : "🔒"} {pack.cost}
                     </button>
                   )}
                 </div>
               );
             })}
 
-          {activeTab === "skins" &&
-            SKINS.map((item, index) => {
-              const isUnlocked = unlockedSkins.includes(item.id);
-              const isActive = activeSkin === item.id;
-              const isPurchasing = purchasing === item.id + 100;
+          {/* Backgrounds Tab */}
+          {activeTab === "backgrounds" &&
+            BACKGROUND_PACKS.map((pack, index) => {
+              const isOwned = unlockedBackgrounds.includes(pack.id);
+              const isActive = activeBackground === pack.id;
+              const isPurchasing = purchasing === `bg-${pack.id}`;
+              const canAfford = coins >= pack.cost;
 
               return (
                 <div
-                  key={item.id}
-                  data-ocid={`shop.skin_item.${index + 1}`}
+                  key={pack.id}
+                  data-ocid={`shop.bg_item.${index + 1}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -442,26 +531,20 @@ export function ThemeShop() {
                     gap: 14,
                   }}
                 >
-                  {/* Preview */}
+                  {/* Gradient Preview */}
                   <div
                     style={{
                       width: 48,
                       height: 48,
                       borderRadius: 12,
-                      background: item.preview,
+                      background: pack.previewGradient,
                       flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 22,
-                      border:
-                        item.id === 1
-                          ? "1px solid rgba(0,255,255,0.3)"
-                          : "none",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      boxShadow: isActive
+                        ? "0 0 12px rgba(0,255,136,0.3)"
+                        : "none",
                     }}
-                  >
-                    {item.icon}
-                  </div>
+                  />
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -473,7 +556,7 @@ export function ThemeShop() {
                         color: isActive ? "#00FF88" : "rgba(255,255,255,0.9)",
                       }}
                     >
-                      {item.name}
+                      {pack.name}
                     </div>
                     <div
                       style={{
@@ -482,7 +565,7 @@ export function ThemeShop() {
                         color: "rgba(255,255,255,0.4)",
                       }}
                     >
-                      {item.description}
+                      {pack.description}
                     </div>
                   </div>
 
@@ -498,14 +581,16 @@ export function ThemeShop() {
                         border: "1px solid rgba(0,255,136,0.2)",
                         borderRadius: 10,
                         padding: "6px 12px",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      Active
+                      ✓ Active
                     </div>
-                  ) : isUnlocked ? (
+                  ) : isOwned ? (
                     <button
                       type="button"
-                      onClick={() => setActiveSkin(item.id)}
+                      data-ocid={`shop.bg_equip.${index + 1}`}
+                      onClick={() => void handleEquipBackground(pack)}
                       style={{
                         fontFamily: "Outfit, sans-serif",
                         fontWeight: 700,
@@ -516,44 +601,56 @@ export function ThemeShop() {
                         borderRadius: 10,
                         padding: "6px 12px",
                         cursor: "pointer",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      Use
+                      Equip
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => void handleUnlockSkin(item)}
-                      disabled={isPurchasing || coins < item.cost}
+                      data-ocid={`shop.bg_buy.${index + 1}`}
+                      onClick={() => void handleBuyBackground(pack)}
+                      disabled={isPurchasing || !canAfford}
                       style={{
                         fontFamily: "Outfit, sans-serif",
                         fontWeight: 700,
                         fontSize: 12,
-                        color:
-                          coins >= item.cost
-                            ? "#0A0A1A"
-                            : "rgba(255,255,255,0.4)",
-                        background:
-                          coins >= item.cost
-                            ? "linear-gradient(135deg, #FFD60A, #FF9500)"
-                            : "rgba(255,255,255,0.05)",
+                        color: canAfford ? "#0A0A1A" : "rgba(255,255,255,0.4)",
+                        background: canAfford
+                          ? "linear-gradient(135deg, #FFD60A, #FF9500)"
+                          : "rgba(255,255,255,0.05)",
                         border: "none",
                         borderRadius: 10,
                         padding: "6px 12px",
-                        cursor: coins >= item.cost ? "pointer" : "not-allowed",
+                        cursor: canAfford ? "pointer" : "not-allowed",
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
                         flexShrink: 0,
                         opacity: isPurchasing ? 0.7 : 1,
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {coins < item.cost ? "🔒" : "🪙"} {item.cost}
+                      {canAfford ? "🪙" : "🔒"} {pack.cost}
                     </button>
                   )}
                 </div>
               );
             })}
+        </div>
+
+        {/* Earn hint */}
+        <div
+          style={{
+            padding: "8px 24px 4px",
+            fontFamily: "Outfit, sans-serif",
+            fontSize: 12,
+            color: "rgba(255,255,255,0.3)",
+            textAlign: "center",
+          }}
+        >
+          Earn 🪙 1 coin per correct tap in-game
         </div>
       </div>
     </div>

@@ -22,18 +22,22 @@ export interface Store {
   speed: number;
   currentColor: CubeColor | null;
   coins: number;
-  activeTheme: number;
-  activeSkin: number;
+  activeBackground: number;
+  activeCubeStyle: number;
   isMuted: boolean;
   showLeaderboard: boolean;
   showShop: boolean;
   showDailyReward: boolean;
+  showRewardedAd: boolean;
   playerName: string;
   cubeKey: number;
   isWrongTap: boolean;
   lastDailyClaim: number;
-  unlockedThemes: number[];
-  unlockedSkins: number[];
+  unlockedBackgrounds: number[];
+  unlockedCubeStyles: number[];
+  coinsEarnedThisRound: number;
+  canContinue: boolean;
+  adScoreSnapshot: number;
 
   // Actions
   startGame: () => void;
@@ -49,14 +53,17 @@ export interface Store {
   setShowLeaderboard: (show: boolean) => void;
   setShowShop: (show: boolean) => void;
   setShowDailyReward: (show: boolean) => void;
+  setShowRewardedAd: (show: boolean) => void;
   setPlayerName: (name: string) => void;
   addCoins: (amount: number) => void;
-  setActiveTheme: (theme: number) => void;
-  setActiveSkin: (skin: number) => void;
-  unlockTheme: (themeId: number) => void;
-  unlockSkin: (skinId: number) => void;
+  setActiveBackground: (background: number) => void;
+  setActiveCubeStyle: (cubeStyle: number) => void;
+  unlockBackground: (bgId: number) => void;
+  unlockCubeStyle: (styleId: number) => void;
   setLastDailyClaim: (ts: number) => void;
   clearWrongTap: () => void;
+  resetCoinsThisRound: () => void;
+  continueGame: () => void;
 }
 
 const pickRandomColor = (): CubeColor => {
@@ -77,18 +84,22 @@ export const useGameStore = create<Store>()(
       speed: 3.0,
       currentColor: null,
       coins: 0,
-      activeTheme: 0,
-      activeSkin: 0,
+      activeBackground: 0,
+      activeCubeStyle: 0,
       isMuted: false,
       showLeaderboard: false,
       showShop: false,
       showDailyReward: false,
+      showRewardedAd: false,
       playerName: "",
       cubeKey: 0,
       isWrongTap: false,
       lastDailyClaim: 0,
-      unlockedThemes: [0],
-      unlockedSkins: [0],
+      unlockedBackgrounds: [0],
+      unlockedCubeStyles: [0],
+      coinsEarnedThisRound: 0,
+      canContinue: true,
+      adScoreSnapshot: 0,
 
       startGame: () => {
         const color = pickRandomColor();
@@ -99,6 +110,9 @@ export const useGameStore = create<Store>()(
           currentColor: color,
           cubeKey: 1,
           isWrongTap: false,
+          coinsEarnedThisRound: 0,
+          canContinue: true,
+          adScoreSnapshot: 0,
         });
       },
 
@@ -111,6 +125,9 @@ export const useGameStore = create<Store>()(
           currentColor: color,
           cubeKey: state.cubeKey + 1,
           isWrongTap: false,
+          coinsEarnedThisRound: 0,
+          canContinue: true,
+          adScoreSnapshot: 0,
         }));
       },
 
@@ -121,7 +138,11 @@ export const useGameStore = create<Store>()(
       setGameOver: () => {
         const { score, highScore } = get();
         const newHighScore = score > highScore ? score : highScore;
-        set({ gameState: "gameover", highScore: newHighScore });
+        set({
+          gameState: "gameover",
+          highScore: newHighScore,
+          adScoreSnapshot: score,
+        });
       },
 
       handleTap: (color: CubeColor) => {
@@ -138,6 +159,8 @@ export const useGameStore = create<Store>()(
             currentColor: nextColor,
             cubeKey: state.cubeKey + 1,
             highScore: newScore > state.highScore ? newScore : state.highScore,
+            coins: state.coins + 1,
+            coinsEarnedThisRound: state.coinsEarnedThisRound + 1,
           }));
           return true;
         }
@@ -145,7 +168,11 @@ export const useGameStore = create<Store>()(
         set({ isWrongTap: true });
         const { highScore } = get();
         const newHighScore = score > highScore ? score : highScore;
-        set({ gameState: "gameover", highScore: newHighScore });
+        set({
+          gameState: "gameover",
+          highScore: newHighScore,
+          adScoreSnapshot: score,
+        });
         return false;
       },
 
@@ -183,6 +210,7 @@ export const useGameStore = create<Store>()(
       setShowLeaderboard: (show: boolean) => set({ showLeaderboard: show }),
       setShowShop: (show: boolean) => set({ showShop: show }),
       setShowDailyReward: (show: boolean) => set({ showDailyReward: show }),
+      setShowRewardedAd: (show: boolean) => set({ showRewardedAd: show }),
 
       setPlayerName: (name: string) => set({ playerName: name }),
 
@@ -190,41 +218,61 @@ export const useGameStore = create<Store>()(
         set((state) => ({ coins: state.coins + amount }));
       },
 
-      setActiveTheme: (theme: number) => set({ activeTheme: theme }),
-      setActiveSkin: (skin: number) => set({ activeSkin: skin }),
+      setActiveBackground: (background: number) =>
+        set({ activeBackground: background }),
+      setActiveCubeStyle: (cubeStyle: number) =>
+        set({ activeCubeStyle: cubeStyle }),
 
-      unlockTheme: (themeId: number) => {
+      unlockBackground: (bgId: number) => {
         set((state) => ({
-          unlockedThemes: state.unlockedThemes.includes(themeId)
-            ? state.unlockedThemes
-            : [...state.unlockedThemes, themeId],
+          unlockedBackgrounds: state.unlockedBackgrounds.includes(bgId)
+            ? state.unlockedBackgrounds
+            : [...state.unlockedBackgrounds, bgId],
         }));
       },
 
-      unlockSkin: (skinId: number) => {
+      unlockCubeStyle: (styleId: number) => {
         set((state) => ({
-          unlockedSkins: state.unlockedSkins.includes(skinId)
-            ? state.unlockedSkins
-            : [...state.unlockedSkins, skinId],
+          unlockedCubeStyles: state.unlockedCubeStyles.includes(styleId)
+            ? state.unlockedCubeStyles
+            : [...state.unlockedCubeStyles, styleId],
         }));
       },
 
       setLastDailyClaim: (ts: number) => set({ lastDailyClaim: ts }),
 
       clearWrongTap: () => set({ isWrongTap: false }),
+
+      resetCoinsThisRound: () => set({ coinsEarnedThisRound: 0 }),
+
+      continueGame: () => {
+        const { adScoreSnapshot } = get();
+        const restoredSpeed = computeSpeed(adScoreSnapshot);
+        const nextColor = pickRandomColor();
+        set((state) => ({
+          gameState: "playing",
+          score: adScoreSnapshot,
+          speed: restoredSpeed,
+          currentColor: nextColor,
+          cubeKey: state.cubeKey + 1,
+          isWrongTap: false,
+          canContinue: false,
+          showRewardedAd: false,
+        }));
+      },
     }),
     {
       name: "color-tap-rush-storage",
       partialize: (state) => ({
         highScore: state.highScore,
         coins: state.coins,
-        activeTheme: state.activeTheme,
-        activeSkin: state.activeSkin,
+        activeBackground: state.activeBackground,
+        activeCubeStyle: state.activeCubeStyle,
         isMuted: state.isMuted,
         playerName: state.playerName,
         lastDailyClaim: state.lastDailyClaim,
-        unlockedThemes: state.unlockedThemes,
-        unlockedSkins: state.unlockedSkins,
+        unlockedBackgrounds: state.unlockedBackgrounds,
+        unlockedCubeStyles: state.unlockedCubeStyles,
       }),
     },
   ),

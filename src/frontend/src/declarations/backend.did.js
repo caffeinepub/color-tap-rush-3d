@@ -13,33 +13,43 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const ThemeId = IDL.Nat;
-export const SkinId = IDL.Nat;
+export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const PlayerData = IDL.Record({
+  'unlockedBackgrounds' : IDL.Vec(IDL.Nat),
+  'equippedBackground' : IDL.Nat,
   'coins' : IDL.Nat,
-  'unlockedThemes' : IDL.Vec(ThemeId),
+  'unlockedCubeStyles' : IDL.Vec(IDL.Nat),
+  'equippedCubeStyle' : IDL.Nat,
   'playerName' : IDL.Text,
   'lastDailyClaim' : IDL.Int,
-  'unlockedSkins' : IDL.Vec(SkinId),
 });
-export const Timestamp = IDL.Int;
 export const ScoreEntry = IDL.Record({
   'score' : IDL.Nat,
-  'timestamp' : Timestamp,
+  'timestamp' : IDL.Int,
   'playerName' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'awardGameCoins' : IDL.Func([IDL.Nat], [IDL.Nat], []),
   'claimDailyReward' : IDL.Func([], [IDL.Nat], []),
+  'equipBackground' : IDL.Func([IDL.Nat], [], []),
+  'equipCubeStyle' : IDL.Func([IDL.Nat], [], []),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getPlayerData' : IDL.Func([], [PlayerData], ['query']),
   'getTopScores' : IDL.Func([], [IDL.Vec(ScoreEntry)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitScore' : IDL.Func([IDL.Nat, IDL.Text], [], []),
-  'unlockSkin' : IDL.Func([SkinId], [], []),
-  'unlockTheme' : IDL.Func([ThemeId], [], []),
+  'unlockBackground' : IDL.Func([IDL.Nat], [], []),
+  'unlockCubeStyle' : IDL.Func([IDL.Nat], [], []),
 });
 
 export const idlInitArgs = [];
@@ -50,33 +60,43 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const ThemeId = IDL.Nat;
-  const SkinId = IDL.Nat;
+  const UserProfile = IDL.Record({ 'name' : IDL.Text });
   const PlayerData = IDL.Record({
+    'unlockedBackgrounds' : IDL.Vec(IDL.Nat),
+    'equippedBackground' : IDL.Nat,
     'coins' : IDL.Nat,
-    'unlockedThemes' : IDL.Vec(ThemeId),
+    'unlockedCubeStyles' : IDL.Vec(IDL.Nat),
+    'equippedCubeStyle' : IDL.Nat,
     'playerName' : IDL.Text,
     'lastDailyClaim' : IDL.Int,
-    'unlockedSkins' : IDL.Vec(SkinId),
   });
-  const Timestamp = IDL.Int;
   const ScoreEntry = IDL.Record({
     'score' : IDL.Nat,
-    'timestamp' : Timestamp,
+    'timestamp' : IDL.Int,
     'playerName' : IDL.Text,
   });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'awardGameCoins' : IDL.Func([IDL.Nat], [IDL.Nat], []),
     'claimDailyReward' : IDL.Func([], [IDL.Nat], []),
+    'equipBackground' : IDL.Func([IDL.Nat], [], []),
+    'equipCubeStyle' : IDL.Func([IDL.Nat], [], []),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getPlayerData' : IDL.Func([], [PlayerData], ['query']),
     'getTopScores' : IDL.Func([], [IDL.Vec(ScoreEntry)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitScore' : IDL.Func([IDL.Nat, IDL.Text], [], []),
-    'unlockSkin' : IDL.Func([SkinId], [], []),
-    'unlockTheme' : IDL.Func([ThemeId], [], []),
+    'unlockBackground' : IDL.Func([IDL.Nat], [], []),
+    'unlockCubeStyle' : IDL.Func([IDL.Nat], [], []),
   });
 };
 

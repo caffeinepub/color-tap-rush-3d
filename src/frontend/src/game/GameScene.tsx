@@ -6,18 +6,31 @@ import { Platform } from "./Platform";
 import { useGameStore } from "./useGameStore";
 import { useSounds } from "./useSounds";
 
+// Background scene configs per background ID
+const BACKGROUND_SCENES = {
+  0: { bg: "#050510", fog: "#050510", ambient: "#ffffff" }, // Deep Space
+  1: { bg: "#001A1A", fog: "#001515", ambient: "#00FFFF" }, // Neon Grid
+  2: { bg: "#1A0500", fog: "#150300", ambient: "#FF6633" }, // Volcano
+  3: { bg: "#001220", fog: "#000F18", ambient: "#0066AA" }, // Ocean Depths
+  4: { bg: "#0D0010", fog: "#0A000D", ambient: "#AA0066" }, // Cyber City
+};
+
 function SceneContent() {
   const {
     gameState,
     currentColor,
     speed,
     cubeKey,
-    activeSkin,
-    activeTheme,
+    activeCubeStyle,
+    activeBackground,
     setGameOver,
   } = useGameStore();
   const { playErrorSound, vibrate } = useSounds();
   const missedRef = useRef(false);
+
+  const scene =
+    BACKGROUND_SCENES[activeBackground as keyof typeof BACKGROUND_SCENES] ||
+    BACKGROUND_SCENES[0];
 
   const handleMissed = useCallback(() => {
     if (missedRef.current) return;
@@ -34,11 +47,11 @@ function SceneContent() {
   return (
     <>
       {/* Scene background */}
-      <color attach="background" args={["#050510"]} />
-      <fog attach="fog" args={["#050510", 20, 40]} />
+      <color attach="background" args={[scene.bg]} />
+      <fog attach="fog" args={[scene.fog, 20, 40]} />
 
       {/* Lighting */}
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={0.3} color={scene.ambient} />
       <pointLight position={[0, 10, 0]} intensity={2} color="#ffffff" />
       <pointLight position={[-5, 5, 5]} intensity={0.8} color="#4444ff" />
       <pointLight position={[5, 5, -5]} intensity={0.8} color="#ff00aa" />
@@ -78,7 +91,7 @@ function SceneContent() {
       )}
 
       {/* Platform */}
-      <Platform theme={activeTheme} />
+      <Platform background={activeBackground} />
 
       {/* Falling cube */}
       {gameState === "playing" && currentColor && (
@@ -86,8 +99,7 @@ function SceneContent() {
           key={cubeKey}
           color={currentColor}
           speed={speed}
-          skin={activeSkin}
-          theme={activeTheme}
+          cubeStyle={activeCubeStyle}
           onMissed={handleMissed}
         />
       )}

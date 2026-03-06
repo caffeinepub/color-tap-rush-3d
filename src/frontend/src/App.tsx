@@ -8,11 +8,17 @@ import { LeaderboardModal } from "./game/overlays/LeaderboardModal";
 import { MainMenu } from "./game/overlays/MainMenu";
 import { ThemeShop } from "./game/overlays/ThemeShop";
 import { useGameStore } from "./game/useGameStore";
+import { usePlayerSync } from "./game/usePlayerSync";
 import { useSounds } from "./game/useSounds";
 
 function SoundManager() {
   // This component just initializes the sound system
   useSounds();
+  return null;
+}
+
+function PlayerSync() {
+  usePlayerSync();
   return null;
 }
 
@@ -76,7 +82,10 @@ export default function App() {
       {/* Sound manager */}
       <SoundManager />
 
-      {/* Game HUD (score, highscore, mute) */}
+      {/* Player data sync from backend */}
+      <PlayerSync />
+
+      {/* Game HUD (score, highscore, mute, coins) */}
       <GameHUD />
 
       {/* Color tap buttons */}

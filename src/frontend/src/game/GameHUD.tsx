@@ -1,7 +1,8 @@
 import { useGameStore } from "./useGameStore";
 
 export function GameHUD() {
-  const { gameState, score, highScore, toggleMute, isMuted } = useGameStore();
+  const { gameState, score, highScore, toggleMute, isMuted, coins } =
+    useGameStore();
 
   if (gameState !== "playing") return null;
 
@@ -65,29 +66,58 @@ export function GameHUD() {
         {score}
       </div>
 
-      {/* High score */}
+      {/* Right side: BEST + coin balance */}
       <div
-        data-ocid="hud.highscore_display"
         style={{
-          fontFamily: "Outfit, sans-serif",
-          fontWeight: 600,
-          fontSize: "clamp(12px, 3vw, 16px)",
-          color: "rgba(255,255,255,0.6)",
-          textAlign: "right",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
           flexShrink: 0,
-          lineHeight: 1.3,
+          gap: 4,
         }}
       >
+        {/* High score */}
         <div
+          data-ocid="hud.highscore_display"
           style={{
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: "0.1em",
+            fontFamily: "Outfit, sans-serif",
+            fontWeight: 600,
+            fontSize: "clamp(12px, 3vw, 16px)",
+            color: "rgba(255,255,255,0.6)",
+            textAlign: "right",
+            lineHeight: 1.3,
           }}
         >
-          BEST
+          <div
+            style={{
+              fontSize: "10px",
+              color: "rgba(255,255,255,0.4)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            BEST
+          </div>
+          <div>{highScore}</div>
         </div>
-        <div>{highScore}</div>
+
+        {/* Coin counter badge */}
+        <div
+          data-ocid="hud.coins_display"
+          style={{
+            fontFamily: "Outfit, sans-serif",
+            fontWeight: 700,
+            fontSize: "clamp(11px, 2.5vw, 13px)",
+            color: "#FFD60A",
+            background: "rgba(255,214,10,0.12)",
+            border: "1px solid rgba(255,214,10,0.25)",
+            borderRadius: 100,
+            padding: "3px 8px",
+            letterSpacing: "0.02em",
+            textShadow: "0 0 8px rgba(255,214,10,0.5)",
+          }}
+        >
+          🪙 {coins}
+        </div>
       </div>
     </div>
   );

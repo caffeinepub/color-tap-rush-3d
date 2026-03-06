@@ -90,20 +90,22 @@ export class ExternalBlob {
     }
 }
 export interface PlayerData {
+    unlockedBackgrounds: Array<bigint>;
+    equippedBackground: bigint;
     coins: bigint;
-    unlockedThemes: Array<ThemeId>;
+    unlockedCubeStyles: Array<bigint>;
+    equippedCubeStyle: bigint;
     playerName: string;
     lastDailyClaim: bigint;
-    unlockedSkins: Array<SkinId>;
 }
-export type Timestamp = bigint;
-export type ThemeId = bigint;
 export interface ScoreEntry {
     score: bigint;
-    timestamp: Timestamp;
+    timestamp: bigint;
     playerName: string;
 }
-export type SkinId = bigint;
+export interface UserProfile {
+    name: string;
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -112,16 +114,22 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    awardGameCoins(coinsEarned: bigint): Promise<bigint>;
     claimDailyReward(): Promise<bigint>;
+    equipBackground(bgId: bigint): Promise<void>;
+    equipCubeStyle(styleId: bigint): Promise<void>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getPlayerData(): Promise<PlayerData>;
     getTopScores(): Promise<Array<ScoreEntry>>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitScore(score: bigint, playerName: string): Promise<void>;
-    unlockSkin(skinId: SkinId): Promise<void>;
-    unlockTheme(themeId: ThemeId): Promise<void>;
+    unlockBackground(bgId: bigint): Promise<void>;
+    unlockCubeStyle(styleId: bigint): Promise<void>;
 }
-import type { UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -152,6 +160,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async awardGameCoins(arg0: bigint): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.awardGameCoins(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.awardGameCoins(arg0);
+            return result;
+        }
+    }
     async claimDailyReward(): Promise<bigint> {
         if (this.processError) {
             try {
@@ -166,18 +188,60 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async equipBackground(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.equipBackground(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.equipBackground(arg0);
+            return result;
+        }
+    }
+    async equipCubeStyle(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.equipCubeStyle(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.equipCubeStyle(arg0);
+            return result;
+        }
+    }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCallerUserProfile();
+                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCallerUserProfile();
+            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n3(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n3(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPlayerData(): Promise<PlayerData> {
@@ -208,6 +272,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getUserProfile(arg0);
+                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getUserProfile(arg0);
+            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async isCallerAdmin(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -219,6 +297,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
+            return result;
+        }
+    }
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveCallerUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveCallerUserProfile(arg0);
             return result;
         }
     }
@@ -236,39 +328,42 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async unlockSkin(arg0: SkinId): Promise<void> {
+    async unlockBackground(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.unlockSkin(arg0);
+                const result = await this.actor.unlockBackground(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.unlockSkin(arg0);
+            const result = await this.actor.unlockBackground(arg0);
             return result;
         }
     }
-    async unlockTheme(arg0: ThemeId): Promise<void> {
+    async unlockCubeStyle(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.unlockTheme(arg0);
+                const result = await this.actor.unlockCubeStyle(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.unlockTheme(arg0);
+            const result = await this.actor.unlockCubeStyle(arg0);
             return result;
         }
     }
 }
-function from_candid_UserRole_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n4(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;

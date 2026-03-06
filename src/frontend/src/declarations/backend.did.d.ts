@@ -11,34 +11,40 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface PlayerData {
+  'unlockedBackgrounds' : Array<bigint>,
+  'equippedBackground' : bigint,
   'coins' : bigint,
-  'unlockedThemes' : Array<ThemeId>,
+  'unlockedCubeStyles' : Array<bigint>,
+  'equippedCubeStyle' : bigint,
   'playerName' : string,
   'lastDailyClaim' : bigint,
-  'unlockedSkins' : Array<SkinId>,
 }
 export interface ScoreEntry {
   'score' : bigint,
-  'timestamp' : Timestamp,
+  'timestamp' : bigint,
   'playerName' : string,
 }
-export type SkinId = bigint;
-export type ThemeId = bigint;
-export type Timestamp = bigint;
+export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'awardGameCoins' : ActorMethod<[bigint], bigint>,
   'claimDailyReward' : ActorMethod<[], bigint>,
+  'equipBackground' : ActorMethod<[bigint], undefined>,
+  'equipCubeStyle' : ActorMethod<[bigint], undefined>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getPlayerData' : ActorMethod<[], PlayerData>,
   'getTopScores' : ActorMethod<[], Array<ScoreEntry>>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitScore' : ActorMethod<[bigint, string], undefined>,
-  'unlockSkin' : ActorMethod<[SkinId], undefined>,
-  'unlockTheme' : ActorMethod<[ThemeId], undefined>,
+  'unlockBackground' : ActorMethod<[bigint], undefined>,
+  'unlockCubeStyle' : ActorMethod<[bigint], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

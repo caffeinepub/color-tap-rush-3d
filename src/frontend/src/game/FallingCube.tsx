@@ -1,38 +1,61 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { CUBE_COLORS, type CubeColor } from "./useGameStore";
+import type { CubeColor } from "./useGameStore";
 
-// Theme color palettes for 3D scene
-const THEME_COLORS = {
+// Cube color packs — each pack has 4 colors (red/blue/green/yellow slots)
+const CUBE_COLOR_PACKS: Record<
+  number,
+  Record<string, { hex: string; emissive: string }>
+> = {
   0: {
-    // Neon default
+    // Default Neon
     red: { hex: "#FF2D55", emissive: "#FF0040" },
     blue: { hex: "#007AFF", emissive: "#0055FF" },
     green: { hex: "#00FF88", emissive: "#00DD66" },
     yellow: { hex: "#FFD60A", emissive: "#FFBB00" },
   },
   1: {
-    // Cyberpunk
-    red: { hex: "#FF6B00", emissive: "#FF4400" },
-    blue: { hex: "#FF00FF", emissive: "#CC00CC" },
-    green: { hex: "#00FFFF", emissive: "#00CCCC" },
-    yellow: { hex: "#FF9900", emissive: "#FF6600" },
+    // Pastel Pack
+    red: { hex: "#FF8FA3", emissive: "#FF6B84" },
+    blue: { hex: "#74B9FF", emissive: "#4EA0FF" },
+    green: { hex: "#A8E6CF", emissive: "#7DD4AF" },
+    yellow: { hex: "#FFE08A", emissive: "#FFD060" },
   },
   2: {
-    // Galaxy
-    red: { hex: "#9B30FF", emissive: "#7700FF" },
-    blue: { hex: "#3060FF", emissive: "#1040FF" },
-    green: { hex: "#00AAFF", emissive: "#0077FF" },
-    yellow: { hex: "#FF30AA", emissive: "#FF0088" },
+    // Fire Pack
+    red: { hex: "#FF4500", emissive: "#CC3300" },
+    blue: { hex: "#FF6B00", emissive: "#FF4400" },
+    green: { hex: "#FF8C00", emissive: "#FF6600" },
+    yellow: { hex: "#FFD700", emissive: "#FFB800" },
+  },
+  3: {
+    // Ice Pack
+    red: { hex: "#E0F7FF", emissive: "#C0EEFF" },
+    blue: { hex: "#00CFFF", emissive: "#00AADD" },
+    green: { hex: "#AAFFEE", emissive: "#88FFDD" },
+    yellow: { hex: "#F0F0FF", emissive: "#D0D0FF" },
+  },
+  4: {
+    // Candy Pack
+    red: { hex: "#FF69B4", emissive: "#FF4499" },
+    blue: { hex: "#00BFFF", emissive: "#0099DD" },
+    green: { hex: "#7FFF00", emissive: "#66DD00" },
+    yellow: { hex: "#FF7F50", emissive: "#FF5533" },
+  },
+  5: {
+    // Dark Matter
+    red: { hex: "#8B0000", emissive: "#6B0000" },
+    blue: { hex: "#00008B", emissive: "#000066" },
+    green: { hex: "#006400", emissive: "#004400" },
+    yellow: { hex: "#B8860B", emissive: "#886608" },
   },
 };
 
 interface FallingCubeProps {
   color: CubeColor;
   speed: number;
-  skin: number;
-  theme: number;
+  cubeStyle: number;
   onMissed: () => void;
   onReachBottom?: () => void;
 }
@@ -40,8 +63,7 @@ interface FallingCubeProps {
 export function FallingCube({
   color,
   speed,
-  skin,
-  theme,
+  cubeStyle,
   onMissed,
 }: FallingCubeProps) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -59,9 +81,10 @@ export function FallingCube({
     [],
   );
 
-  const themeColors =
-    THEME_COLORS[theme as keyof typeof THEME_COLORS] || THEME_COLORS[0];
-  const colorData = themeColors[color] || CUBE_COLORS[color];
+  const pack =
+    CUBE_COLOR_PACKS[cubeStyle as keyof typeof CUBE_COLOR_PACKS] ||
+    CUBE_COLOR_PACKS[0];
+  const colorData = pack[color] || CUBE_COLOR_PACKS[0][color];
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
@@ -111,8 +134,8 @@ export function FallingCube({
 
   const initialPos: [number, number, number] = [xPos, startY, zPos];
 
-  if (skin === 2) {
-    // Wireframe only
+  // cubeStyle 2 → wireframe rendering
+  if (cubeStyle === 2) {
     return (
       <lineSegments ref={wireRef} position={initialPos}>
         <primitive object={edgesGeo} attach="geometry" />
@@ -121,8 +144,8 @@ export function FallingCube({
     );
   }
 
-  if (skin === 1) {
-    // Crystal — transparent + wireframe overlay
+  // cubeStyle 1 → crystal rendering (transparent + wireframe overlay)
+  if (cubeStyle === 1) {
     return (
       <>
         <mesh ref={meshRef} position={initialPos}>
@@ -146,7 +169,7 @@ export function FallingCube({
     );
   }
 
-  // Normal skin
+  // All other cube styles — solid rendering with pack colors
   return (
     <mesh ref={meshRef} position={initialPos} castShadow>
       <boxGeometry args={[1.2, 1.2, 1.2]} />

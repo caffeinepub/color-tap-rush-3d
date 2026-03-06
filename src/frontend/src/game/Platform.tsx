@@ -3,19 +3,22 @@ import { useMemo } from "react";
 import * as THREE from "three";
 
 interface PlatformProps {
-  theme: number;
+  background: number;
 }
 
-const THEME_PLATFORM_COLORS = {
-  0: { base: "#0A0A1A", grid: "#1A1A4A", edge: "#2244AA" },
-  1: { base: "#1A0A00", grid: "#3A1A00", edge: "#FF6600" },
-  2: { base: "#0A0015", grid: "#150030", edge: "#6600FF" },
+const BACKGROUND_PLATFORM_COLORS = {
+  0: { base: "#0A0A1A", grid: "#1A1A4A", edge: "#2244AA" }, // Deep Space
+  1: { base: "#001A1A", grid: "#003333", edge: "#00FFFF" }, // Neon Grid
+  2: { base: "#1A0500", grid: "#3A0A00", edge: "#FF4500" }, // Volcano
+  3: { base: "#001220", grid: "#002240", edge: "#00AAFF" }, // Ocean Depths
+  4: { base: "#0D0010", grid: "#200020", edge: "#FF00AA" }, // Cyber City
 };
 
-export function Platform({ theme }: PlatformProps) {
-  const themeColors =
-    THEME_PLATFORM_COLORS[theme as keyof typeof THEME_PLATFORM_COLORS] ||
-    THEME_PLATFORM_COLORS[0];
+export function Platform({ background }: PlatformProps) {
+  const bgColors =
+    BACKGROUND_PLATFORM_COLORS[
+      background as keyof typeof BACKGROUND_PLATFORM_COLORS
+    ] || BACKGROUND_PLATFORM_COLORS[0];
 
   const gridLines = useMemo(() => {
     const lines: ReactElement[] = [];
@@ -33,11 +36,7 @@ export function Platform({ theme }: PlatformProps) {
       const geo = new THREE.BufferGeometry().setFromPoints(points);
       lines.push(
         <lineSegments key={`h-${i}`} geometry={geo}>
-          <lineBasicMaterial
-            color={themeColors.grid}
-            transparent
-            opacity={0.6}
-          />
+          <lineBasicMaterial color={bgColors.grid} transparent opacity={0.6} />
         </lineSegments>,
       );
     }
@@ -52,17 +51,13 @@ export function Platform({ theme }: PlatformProps) {
       const geo = new THREE.BufferGeometry().setFromPoints(points);
       lines.push(
         <lineSegments key={`v-${i}`} geometry={geo}>
-          <lineBasicMaterial
-            color={themeColors.grid}
-            transparent
-            opacity={0.6}
-          />
+          <lineBasicMaterial color={bgColors.grid} transparent opacity={0.6} />
         </lineSegments>,
       );
     }
 
     return lines;
-  }, [themeColors]);
+  }, [bgColors]);
 
   return (
     <group>
@@ -70,7 +65,7 @@ export function Platform({ theme }: PlatformProps) {
       <mesh position={[0, 0, 0]} receiveShadow>
         <boxGeometry args={[6, 0.3, 6]} />
         <meshStandardMaterial
-          color={themeColors.base}
+          color={bgColors.base}
           metalness={0.8}
           roughness={0.2}
         />
@@ -80,32 +75,32 @@ export function Platform({ theme }: PlatformProps) {
       <mesh position={[0, 0.155, 3.0]}>
         <boxGeometry args={[6, 0.02, 0.05]} />
         <meshStandardMaterial
-          color={themeColors.edge}
-          emissive={themeColors.edge}
+          color={bgColors.edge}
+          emissive={bgColors.edge}
           emissiveIntensity={2}
         />
       </mesh>
       <mesh position={[0, 0.155, -3.0]}>
         <boxGeometry args={[6, 0.02, 0.05]} />
         <meshStandardMaterial
-          color={themeColors.edge}
-          emissive={themeColors.edge}
+          color={bgColors.edge}
+          emissive={bgColors.edge}
           emissiveIntensity={2}
         />
       </mesh>
       <mesh position={[3.0, 0.155, 0]}>
         <boxGeometry args={[0.05, 0.02, 6]} />
         <meshStandardMaterial
-          color={themeColors.edge}
-          emissive={themeColors.edge}
+          color={bgColors.edge}
+          emissive={bgColors.edge}
           emissiveIntensity={2}
         />
       </mesh>
       <mesh position={[-3.0, 0.155, 0]}>
         <boxGeometry args={[0.05, 0.02, 6]} />
         <meshStandardMaterial
-          color={themeColors.edge}
-          emissive={themeColors.edge}
+          color={bgColors.edge}
+          emissive={bgColors.edge}
           emissiveIntensity={2}
         />
       </mesh>
