@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Outfit";
+  src: url("/assets/fonts/Outfit-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 1rem;
+    --background: 0.08 0.02 270;
+    --foreground: 0.95 0.01 270;
+    --card: 0.12 0.03 270;
+    --card-foreground: 0.95 0.01 270;
+    --popover: 0.12 0.03 270;
+    --popover-foreground: 0.95 0.01 270;
+    --primary: 0.65 0.25 145;
+    --primary-foreground: 0.08 0.02 270;
+    --secondary: 0.18 0.04 270;
+    --secondary-foreground: 0.95 0.01 270;
+    --muted: 0.25 0.03 270;
+    --muted-foreground: 0.65 0.04 270;
+    --accent: 0.7 0.28 310;
+    --accent-foreground: 0.08 0.02 270;
+    --destructive: 0.65 0.28 25;
+    --destructive-foreground: 0.95 0.01 270;
+    --border: 0.22 0.05 270;
+    --input: 0.18 0.04 270;
+    --ring: 0.65 0.25 145;
+    --chart-1: 0.65 0.25 145;
+    --chart-2: 0.6 0.25 250;
+    --chart-3: 0.7 0.28 310;
+    --chart-4: 0.75 0.2 85;
+    --chart-5: 0.65 0.28 25;
+    --sidebar: 0.10 0.02 270;
+    --sidebar-foreground: 0.95 0.01 270;
+    --sidebar-primary: 0.65 0.25 145;
+    --sidebar-primary-foreground: 0.08 0.02 270;
+    --sidebar-accent: 0.18 0.04 270;
+    --sidebar-accent-foreground: 0.95 0.01 270;
+    --sidebar-border: 0.22 0.05 270;
+    --sidebar-ring: 0.65 0.25 145;
+
+    /* Neon game colors */
+    --neon-red: #FF2D55;
+    --neon-blue: #007AFF;
+    --neon-green: #00FF88;
+    --neon-yellow: #FFD60A;
+    --neon-purple: #BF5AF2;
+    --neon-magenta: #FF375F;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Outfit", sans-serif;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  * {
+    -webkit-touch-callout: none;
+  }
+}
+
+@layer utilities {
+  .neon-text-red {
+    color: var(--neon-red);
+    text-shadow: 0 0 10px var(--neon-red), 0 0 20px var(--neon-red), 0 0 40px var(--neon-red);
+  }
+  .neon-text-green {
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green), 0 0 40px var(--neon-green);
+  }
+  .neon-text-blue {
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue);
+  }
+  .neon-text-yellow {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow), 0 0 40px var(--neon-yellow);
+  }
+  .neon-text-purple {
+    color: var(--neon-purple);
+    text-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple), 0 0 40px var(--neon-purple);
+  }
+  .glass {
+    background: rgba(12, 10, 30, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .game-btn-red {
+    background: linear-gradient(135deg, #FF2D55, #FF0040);
+    box-shadow: 0 0 20px rgba(255, 45, 85, 0.6), 0 4px 15px rgba(255, 45, 85, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .game-btn-blue {
+    background: linear-gradient(135deg, #007AFF, #0055FF);
+    box-shadow: 0 0 20px rgba(0, 122, 255, 0.6), 0 4px 15px rgba(0, 122, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .game-btn-green {
+    background: linear-gradient(135deg, #00FF88, #00CC66);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), 0 4px 15px rgba(0, 255, 136, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .game-btn-yellow {
+    background: linear-gradient(135deg, #FFD60A, #FFAA00);
+    box-shadow: 0 0 20px rgba(255, 214, 10, 0.6), 0 4px 15px rgba(255, 214, 10, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .scanline {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+  }
+}
